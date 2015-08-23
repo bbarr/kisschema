@@ -64,7 +64,8 @@ var shoutType = types.custom({
 * types.shape
 * types.arrayOf
 * types.objectOf
-  * any of the above can be followed with .isRequired
+
+*any of the above types can be followed with .isRequired*
 
 * validate(schema, obj, opts={})
   * returns null if passes, or an array of error messages if doesn't pass
