@@ -1,0 +1,15 @@
+{
+  "name": "kisschema",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build/index.js",
+  "scripts": {
+    "develop": "babel --watch src --out-file build/index.js",
+    "test": "mocha --watch --compilers js:babel/register"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "^2.2.5"
+  }
+}
