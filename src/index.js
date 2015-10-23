@@ -10,7 +10,6 @@ var isString = is.bind(null, 'String')
 var isNull = is.bind(null, 'Null')
 var isUndefined = is.bind(null, 'Undefined')
 var existy = (x) => !isNull(x) && !isUndefined(x)
-var when = (cond, val) => cond ? val : null
 var values = (obj) => Object.keys(obj).reduce((vals, key) => vals.concat(obj[key]), [])
 
 var makeRequirable = (type) => {
@@ -111,7 +110,10 @@ var types = {
   },
 
   custom(type={}) {
-    var errors = validate(typeSchema, type)
+    var errors = validate({ 
+      validate: types.func.isRequired, 
+      makeErrorMessage: types.func.isRequired 
+    }, type)
     if (errors) throw new Error(errors)
     return makeRequirable(type)
   },
@@ -122,11 +124,6 @@ var types = {
   })
 }
 
-var typeSchema = {
-  validate: types.func.isRequired, 
-  makeErrorMessage: types.func.isRequired 
-}
-
 var validateType = (errors, ctx, type, val) => {
   if (!existy(val) && !type.isRequiring) return errors
   var passed = type.validate(val)
@@ -134,6 +131,7 @@ var validateType = (errors, ctx, type, val) => {
 }
 
 var validate = (schema, obj, opts={}) => {
+
   var errors = Object.keys(schema).reduce((errors, key) => {
     var ctx = { prop: key }
     var type = schema[key]
@@ -146,6 +144,7 @@ var validate = (schema, obj, opts={}) => {
     }
     return newErrors
   }, [])
+
   return errors.length ? errors : null
 }
 

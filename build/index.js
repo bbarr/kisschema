@@ -23,9 +23,6 @@ var isUndefined = is.bind(null, 'Undefined');
 var existy = function existy(x) {
   return !isNull(x) && !isUndefined(x);
 };
-var when = function when(cond, val) {
-  return cond ? val : null;
-};
 var values = function values(obj) {
   return _Object$keys(obj).reduce(function (vals, key) {
     return vals.concat(obj[key]);
@@ -228,7 +225,10 @@ var types = {
   custom: function custom() {
     var type = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-    var errors = validate(typeSchema, type);
+    var errors = validate({
+      validate: types.func.isRequired,
+      makeErrorMessage: types.func.isRequired
+    }, type);
     if (errors) throw new Error(errors);
     return makeRequirable(type);
   },
@@ -241,11 +241,6 @@ var types = {
       return ctx.prop + ' should be "any"thing... just not undefined or null';
     }
   })
-};
-
-var typeSchema = {
-  validate: types.func.isRequired,
-  makeErrorMessage: types.func.isRequired
 };
 
 var validateType = function validateType(errors, ctx, type, val) {
@@ -269,6 +264,7 @@ var validate = function validate(schema, obj) {
     }
     return newErrors;
   }, []);
+
   return errors.length ? errors : null;
 };
 
