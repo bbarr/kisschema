@@ -1,5 +1,9 @@
 'use strict';
 
+var _Object$keys = require('babel-runtime/core-js/object/keys')['default'];
+
+var _Object$assign = require('babel-runtime/core-js/object/assign')['default'];
+
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
@@ -23,13 +27,13 @@ var when = function when(cond, val) {
   return cond ? val : null;
 };
 var values = function values(obj) {
-  return Object.keys(obj).reduce(function (vals, key) {
+  return _Object$keys(obj).reduce(function (vals, key) {
     return vals.concat(obj[key]);
   }, []);
 };
 
 var makeRequirable = function makeRequirable(type) {
-  return Object.assign(type, {
+  return _Object$assign(type, {
     isRequired: {
       isRequiring: true,
       next: type,
@@ -253,7 +257,7 @@ var validateType = function validateType(errors, ctx, type, val) {
 var validate = function validate(schema, obj) {
   var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-  var errors = Object.keys(schema).reduce(function (errors, key) {
+  var errors = _Object$keys(schema).reduce(function (errors, key) {
     var ctx = { prop: key };
     var type = schema[key];
     if (opts.failFast && errors.length) return errors;

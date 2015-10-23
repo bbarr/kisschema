@@ -1,15 +1,18 @@
 {
   "name": "kisschema",
-  "version": "1.0.0",
+  "version": "0.0.2",
   "description": "",
   "main": "build/index.js",
   "scripts": {
-    "develop": "babel --watch src --out-file build/index.js",
+    "deploy": "babel src --out-file build/index.js --stage 1 --optional runtime",
     "test": "mocha --watch --compilers js:babel/register"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "mocha": "^2.2.5"
+  },
+  "dependencies": {
+    "babel-runtime": "^5.8.25"
   }
 }
