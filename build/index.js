@@ -53,7 +53,7 @@ var asType = function asType(obj) {
   };
 };
 
-var types = {
+var types = exports.types = {
 
   string: makeRequirable({
     validate: function validate(x) {
@@ -238,14 +238,9 @@ var _validate = function _validate(schema, obj) {
   return errors.length ? errors : null;
 };
 
-var enforce = function enforce(schema, obj, opts) {
+exports.validate = _validate;
+var enforce = exports.enforce = function enforce(schema, obj, opts) {
   var errors = _validate(schema, obj, opts);
   if (errors) return new Error(JSON.stringify(errors));
   return obj;
-};
-
-exports.default = {
-  types: types,
-  validate: _validate,
-  enforce: enforce
 };

@@ -2,22 +2,22 @@
 import 'babel-polyfill'
 
 import assert from 'assert'
-import ks from '../src/index'
+import { types, validate, enforce } from '../src/index'
 
-var emailType = ks.types.custom({
+var emailType = types.custom({
   validate: (str) => /.@./.test(str),
   makeErrorMessage: (ctx, str) => `Error ${ctx.prop}: '${str}' doesn't really look like an email, dude`
 })
 
 var Author = {
-  name: ks.types.string.isRequired,
+  name: types.string.isRequired,
   email: emailType.isRequired,
-  bookIds: ks.types.arrayOf(ks.types.string)
+  bookIds: types.arrayOf(types.string)
 }
 
 var Book = {
-  id: ks.types.string.isRequired,
-  author: ks.types.shape(Author).isRequired
+  id: types.string.isRequired,
+  author: types.shape(Author).isRequired
 }
 
 describe('examples', () => {
@@ -30,7 +30,7 @@ describe('examples', () => {
         email: 'bob@cobb.com',
         bookIds: []
       }
-      assert(!ks.validate(Author, author))
+      assert(!validate(Author, author))
     })
 
     it ('should fail when missing required prop', () => {
@@ -38,7 +38,7 @@ describe('examples', () => {
         name: 'Bob Cobb',
         bookIds: []
       }
-      assert.equal(ks.validate(Author, author).length, 1)
+      assert.equal(validate(Author, author).length, 1)
     })
   })
 
@@ -52,7 +52,7 @@ describe('examples', () => {
           email: 'bob@cobb.com'
         }
       }
-      assert(!ks.validate(Book, book))
+      assert(!validate(Book, book))
     })
 
     it ('should fail when missing required prop', () => {
@@ -60,7 +60,7 @@ describe('examples', () => {
         name: 'Bob Cobb',
         bookIds: [ ]
       }
-      assert.equal(ks.validate(Author, author).length, 1)
+      assert.equal(validate(Author, author).length, 1)
     })
   })
 })

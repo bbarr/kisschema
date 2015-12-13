@@ -32,7 +32,7 @@ var asType = (obj) => {
   }
 }
 
-var types = {
+export var types = {
 
   string: makeRequirable({
     validate: (x) => isString(x),
@@ -130,7 +130,7 @@ var validateType = (errors, ctx, type, val) => {
   return passed ? errors : errors.concat(type.makeErrorMessage(ctx, val))
 }
 
-var validate = (schema, obj, opts={}) => {
+export var validate = (schema, obj, opts={}) => {
 
   var errors = Object.keys(schema).reduce((errors, key) => {
     var ctx = { prop: key }
@@ -148,14 +148,8 @@ var validate = (schema, obj, opts={}) => {
   return errors.length ? errors : null
 }
 
-var enforce = (schema, obj, opts) => {
+export var enforce = (schema, obj, opts) => {
   let errors = validate(schema, obj, opts)
   if (errors) return new Error(JSON.stringify(errors))
   return obj
-}
-
-export default {
-  types,
-  validate,
-  enforce
 }
