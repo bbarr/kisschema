@@ -344,4 +344,19 @@ describe('kisschema', () => {
       })
     })
   })
+
+  describe('kisschema.enforce', () => {
+
+    it ('should return tested data if passed', () => {
+      var schema = { a: ks.types.string, b: ks.types.number }
+      var obj = { a: '1', b: 1 }
+      assert.equal(ks.enforce(schema, obj), obj)
+    })
+
+    it ('should throw error if not passed', () => {
+      var schema = { a: ks.types.string, b: ks.types.number }
+      var obj = { a: '1', b: '1' }
+      assert.throws(ks.enforce(schema, obj), Error)
+    })
+  })
 })

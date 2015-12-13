@@ -1,4 +1,6 @@
 
+import 'babel-polyfill'
+
 var toString = Object.prototype.toString
 var is = (typeName, x) => toString.call(x) === `[object ${typeName}]`
 var isArray = is.bind(null, 'Array')
@@ -148,7 +150,14 @@ var validate = (schema, obj, opts={}) => {
   return errors.length ? errors : null
 }
 
+var enforce = (schema, obj, opts) => {
+  let errors = validate(schema, obj, opts)
+  if (errors) return new Error(JSON.stringify(errors))
+  return obj
+}
+
 export default {
   types,
-  validate
+  validate,
+  enforce
 }
