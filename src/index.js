@@ -1,6 +1,4 @@
 
-import 'babel-polyfill'
-
 var toString = Object.prototype.toString
 var is = (typeName, x) => toString.call(x) === `[object ${typeName}]`
 var isArray = is.bind(null, 'Array')

@@ -1,4 +1,6 @@
 
+import 'babel-polyfill'
+
 import assert from 'assert'
 import ks from '../src/index'
 
