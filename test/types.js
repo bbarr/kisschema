@@ -34,11 +34,14 @@ var describeBasicType = (typeName, type, passingValue, failingValue) => {
   describe('serialization', () => {
 
     it ('should JSON.stringify nicely', () => {
-      assert.equal(JSON.stringify(type), `"${typeName}"`)
+      assert.equal(JSON.stringify(type), JSON.stringify({ type: typeName }))
     })
 
     it ('should JSON.stringify nicely with isRequired', () => {
-      assert.equal(JSON.stringify(type.isRequired), `"required - '${typeName}'"`)
+      assert.equal(JSON.stringify(type.isRequired), JSON.stringify({
+        required: true,
+        type: typeName
+      }))
     })
   })
 }
@@ -90,9 +93,9 @@ describe('kisschema', () => {
       it ('should offer a helpful error message', () => {
         var possibilities = [ 'a', 'b', 'c' ]
         var type = types.oneOf(possibilities)
-        assert.equal(
+        assert.deepEqual(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should match one of: ['a','b','c']`
+          { oneOf: ['a','b','c'] }
         )
       })
     })
@@ -114,7 +117,7 @@ describe('kisschema', () => {
 
       it ('should return false if test value matches any of the given schemas', () => {
         var type = types.oneOfType([ 
-          { a: types.string },
+          types.shape({ a: types.string }),
           types.number
         ])
         assert.equal(type.validate({ a: '1' }), true)
@@ -123,13 +126,13 @@ describe('kisschema', () => {
 
       it ('should offer a helpful error message', () => {
         var possibilities = [ 
-          { a: types.string },
+          types.shape({ a: types.string.isRequired }),
           types.number
         ]
         var type = types.oneOfType(possibilities)
-        assert.equal(
+        assert.deepEqual(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be one of type: {'a':'string'},'number'`
+          { oneOfType: [ { a: { required: true, type: 'string' } }, { type: 'number' } ] }
         )
       })
     })
@@ -151,11 +154,11 @@ describe('kisschema', () => {
       })
 
       it ('should offer a helpful error message', () => {
-        var item = { a: types.number }
+        var item = types.shape({ a: types.number })
         var type = types.arrayOf(item) 
-        assert.equal(
+        assert.deepEqual(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be an array containing items of type: {'a':'number'}`
+          { arrayOf: { a: { type: 'number' } } }
         )
       })
     })
@@ -178,9 +181,9 @@ describe('kisschema', () => {
 
       it ('should offer a helpful error message', () => {
         var type = types.objectOf(types.number) 
-        assert.equal(
+        assert.deepEqual(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be an object containing items of type: 'number'`
+          { objectOf: { type: 'number' } }
         )
       })
     })
@@ -251,6 +254,20 @@ describe('kisschema', () => {
         assert.deepEqual(
           type.makeErrorMessage({ prop: 'test-prop' }, { a: 1, b: '1' }), 
           { a: 'a should be of type: string', b: 'b should be of type: array' }
+        )
+      })
+
+      it ('should work on nested shapes', () => {
+
+        var type = types.shape({
+          a: types.shape({
+            b: types.number.isRequired
+          })
+        })
+
+        assert.deepEqual(
+          type.toJSON(), 
+          { a: { b: { required: true, type: 'number' } } }
         )
       })
     })

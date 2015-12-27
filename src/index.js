@@ -12,8 +12,6 @@ var isUndefined = is.bind(null, 'Undefined')
 var existy = (x) => !isNull(x) && !isUndefined(x)
 var values = (obj) => Object.keys(obj).reduce((vals, key) => vals.concat(obj[key]), [])
 
-var doubleToSingleQuotes = str => str.replace(/"/g, "'")
-
 var makeRequirable = (type) => {
   return Object.assign(type, {
     isRequired: {
@@ -21,7 +19,7 @@ var makeRequirable = (type) => {
       next: type,
       validate: (x) => existy(x),
       makeErrorMessage: (ctx, x) => `${ctx.prop} must not be null or undefined`,
-      toJSON: () => doubleToSingleQuotes(`required - ${JSON.stringify(type)}`)
+      toJSON: () => Object.assign({ required: true }, type.toJSON())
     }
   })
 }
@@ -33,7 +31,7 @@ var asType = (obj) => {
   let type = {
     validate: (x) => !validate(obj, x),
     makeErrorMessage: (ctx, x) => `${ctx.prop} should match schema: ${type.toJSON()}`,
-    toJSON: () => doubleToSingleQuotes(JSON.stringify(obj))
+    toJSON: () => JSON.stringify(obj)
   }
 
   return type
@@ -44,45 +42,45 @@ export var types = {
   string: makeRequirable({
     validate: (x) => isString(x),
     makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: string`,
-    toJSON: () => 'string'
+    toJSON: () => ({ type: 'string' })
   }),
 
   number: makeRequirable({
     validate: (x) => isNumber(x),
     makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: number`,
-    toJSON: () => 'number'
+    toJSON: () => ({ type: 'number' })
   }),
 
   bool: makeRequirable({
     validate: (x) => isBoolean(x),
     makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: bool`,
-    toJSON: () => 'bool'
+    toJSON: () => ({ type: 'bool' })
   }),
 
   object: makeRequirable({
     validate: (x) => isObject(x),
     makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: object`,
-    toJSON: () => 'object'
+    toJSON: () => ({ type: 'object' })
   }),
 
   array: makeRequirable({
     validate: (x) => isArray(x),
     makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: array`,
-    toJSON: () => 'array'
+    toJSON: () => ({ type: 'array' })
   }),
 
   func: makeRequirable({
     validate: (x) => isFunction(x),
     makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: func`,
-    toJSON: () => 'func'
+    toJSON: () => ({ type: 'func' })
   }),
 
   oneOf(possibilities=[]) {
 
     let type = makeRequirable({
       validate: (x) => possibilities.indexOf(x) > -1,
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should match one of: ${type.toJSON()}`,
-      toJSON: () => doubleToSingleQuotes(JSON.stringify(possibilities))
+      makeErrorMessage: (ctx, x) => type.toJSON(),
+      toJSON: () => ({ oneOf: possibilities })
     })
 
     return type
@@ -94,8 +92,8 @@ export var types = {
 
     let type = makeRequirable({
       validate: (x) => subs.some(sub => sub.validate(x)),
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should be one of type: ${type.toJSON()}`,
-      toJSON: () => schemaOrTypes.map((st) => doubleToSingleQuotes(JSON.stringify(st)))
+      makeErrorMessage: (ctx, x) => type.toJSON(),
+      toJSON: () => ({ oneOfType: schemaOrTypes.map((st) => st.toJSON()) })
     })
 
     return type
@@ -106,8 +104,8 @@ export var types = {
 
     let type = makeRequirable({
       validate: (x) => x.every((y) => sub.validate(y)),
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should be an array containing items of type: ${type.toJSON()}`,
-      toJSON: () => doubleToSingleQuotes(JSON.stringify(schemaOrType))
+      makeErrorMessage: () => type.toJSON(),
+      toJSON: () => ({ arrayOf: sub.toJSON() })
     })
 
     return type
@@ -119,8 +117,8 @@ export var types = {
 
     let type = makeRequirable({
       validate: (x) => values(x).every((y) => sub.validate(y)),
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should be an object containing items of type: ${type.toJSON()}`,
-      toJSON: () => doubleToSingleQuotes(JSON.stringify(schemaOrType))
+      makeErrorMessage: (ctx, x) => type.toJSON(),
+      toJSON: () => ({ objectOf: sub.toJSON() })
     })
 
     return type
@@ -148,11 +146,9 @@ export var types = {
           return Object.assign({}, memo, result)
         }, {})
       },
-      toJSON: () => doubleToSingleQuotes(JSON.stringify(
-        Object.keys(schema).reduce((memo, key) => {
-          return Object.assign({}, memo, { [key]: schema[key].toJSON() })
-        }, {}))
-      )
+      toJSON: () => Object.keys(schema).reduce((memo, key) => {
+        return Object.assign({}, memo, { [key]: schema[key].toJSON() })
+      }, {})
     })
 
     return type
