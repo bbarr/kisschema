@@ -4,6 +4,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 var toString = Object.prototype.toString;
 var is = function is(typeName, x) {
   return toString.call(x) === '[object ' + typeName + ']';
@@ -35,6 +37,9 @@ var makeRequirable = function makeRequirable(type) {
       },
       makeErrorMessage: function makeErrorMessage(ctx, x) {
         return ctx.prop + ' must not be null or undefined';
+      },
+      toJSON: function toJSON() {
+        return 'required - ' + JSON.stringify(type);
       }
     }
   });
@@ -61,6 +66,9 @@ var types = exports.types = {
     },
     makeErrorMessage: function makeErrorMessage(ctx, x) {
       return ctx.prop + ' should be of type: string';
+    },
+    toJSON: function toJSON() {
+      return 'string';
     }
   }),
 
@@ -70,6 +78,9 @@ var types = exports.types = {
     },
     makeErrorMessage: function makeErrorMessage(ctx, x) {
       return ctx.prop + ' should be of type: number';
+    },
+    toJSON: function toJSON() {
+      return 'number';
     }
   }),
 
@@ -78,7 +89,10 @@ var types = exports.types = {
       return isBoolean(x);
     },
     makeErrorMessage: function makeErrorMessage(ctx, x) {
-      return ctx.prop + ' should be of type: boolean';
+      return ctx.prop + ' should be of type: bool';
+    },
+    toJSON: function toJSON() {
+      return 'bool';
     }
   }),
 
@@ -88,6 +102,9 @@ var types = exports.types = {
     },
     makeErrorMessage: function makeErrorMessage(ctx, x) {
       return ctx.prop + ' should be of type: object';
+    },
+    toJSON: function toJSON() {
+      return 'object';
     }
   }),
 
@@ -97,6 +114,9 @@ var types = exports.types = {
     },
     makeErrorMessage: function makeErrorMessage(ctx, x) {
       return ctx.prop + ' should be of type: array';
+    },
+    toJSON: function toJSON() {
+      return 'array';
     }
   }),
 
@@ -105,102 +125,143 @@ var types = exports.types = {
       return isFunction(x);
     },
     makeErrorMessage: function makeErrorMessage(ctx, x) {
-      return ctx.prop + ' should be of type: function';
+      return ctx.prop + ' should be of type: func';
+    },
+    toJSON: function toJSON() {
+      return 'func';
     }
   }),
 
   oneOf: function oneOf() {
     var possibilities = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
 
-    return makeRequirable({
+    var type = makeRequirable({
       validate: function validate(x) {
         return possibilities.indexOf(x) > -1;
       },
       makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should match one of: ' + JSON.stringify(possibilities);
+        return ctx.prop + ' should match one of: ' + type.toJSON();
+      },
+      toJSON: function toJSON() {
+        return JSON.stringify(possibilities);
       }
     });
+
+    return type;
   },
   oneOfType: function oneOfType() {
     var schemaOrTypes = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
 
-    var types = schemaOrTypes.map(asType);
-    return makeRequirable({
+    var subs = schemaOrTypes.map(asType);
+
+    var type = makeRequirable({
       validate: function validate(x) {
-        return types.some(function (type) {
-          return type.validate(x);
+        return subs.some(function (sub) {
+          return sub.validate(x);
         });
       },
       makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should be one of type: ' + schemaOrTypes.map(function (st) {
-          return st.toString();
+        return ctx.prop + ' should be one of type: ' + type.toJSON();
+      },
+      toJSON: function toJSON() {
+        return schemaOrTypes.map(function (st) {
+          return JSON.stringify(st);
         });
       }
     });
+
+    return type;
   },
   arrayOf: function arrayOf() {
     var schemaOrType = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-    var type = asType(schemaOrType);
-    return makeRequirable({
+    var sub = asType(schemaOrType);
+
+    var type = makeRequirable({
       validate: function validate(x) {
         return x.every(function (y) {
-          return type.validate(y);
+          return sub.validate(y);
         });
       },
       makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should be an array containing items of type: ' + schemaOrType.toString();
+        return ctx.prop + ' should be an array containing items of type: ' + type.toJSON();
+      },
+      toJSON: function toJSON() {
+        return JSON.stringify(schemaOrType);
       }
     });
+
+    return type;
   },
   objectOf: function objectOf() {
     var schemaOrType = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-    var type = asType(schemaOrType);
-    return makeRequirable({
+    var sub = asType(schemaOrType);
+
+    var type = makeRequirable({
       validate: function validate(x) {
         return values(x).every(function (y) {
-          return type.validate(y);
+          return sub.validate(y);
         });
       },
       makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should be an object containing items of type: ' + schemaOrType.toString();
+        return ctx.prop + ' should be an object containing items of type: ' + type.toJSON();
+      },
+      toJSON: function toJSON() {
+        return JSON.stringify(schemaOrType);
       }
     });
+
+    return type;
   },
   instanceOf: function instanceOf() {
     var Constructor = arguments.length <= 0 || arguments[0] === undefined ? function () {} : arguments[0];
 
-    return makeRequirable({
+    var type = makeRequirable({
       validate: function validate(x) {
         return x instanceof Constructor;
       },
       makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should be an instance of ' + Constructor.toString();
+        return ctx.prop + ' should be an instance of ' + type.toJSON();
+      },
+      toJSON: function toJSON() {
+        return JSON.stringify(Constructor);
       }
     });
+
+    return type;
   },
   shape: function shape() {
     var schema = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-    return makeRequirable({
+    var type = makeRequirable({
       validate: function validate(x) {
         return !_validate(schema, x);
       },
       makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should match shape/schema ' + schema.toString();
+        return ctx.prop + ' should match shape ' + type.toJSON();
+      },
+      toJSON: function toJSON() {
+        return JSON.stringify(Object.keys(schema).reduce(function (memo, key) {
+          return Object.assign({}, memo, _defineProperty({}, key, schema[key].toJSON()));
+        }, {}));
       }
     });
+
+    return type;
   },
   custom: function custom() {
     var type = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
     var errors = _validate({
       validate: types.func.isRequired,
-      makeErrorMessage: types.func.isRequired
+      makeErrorMessage: types.func.isRequired,
+      toJSON: types.func
     }, type);
     if (errors) throw new Error(errors);
-    return makeRequirable(type);
+    return makeRequirable(Object.assign({ toJSON: function toJSON() {
+        return 'custom type - define a "toJSON" function for a better message here';
+      } }, type));
   },
 
   any: makeRequirable({
