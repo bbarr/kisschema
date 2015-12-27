@@ -30,6 +30,17 @@ var describeBasicType = (typeName, type, passingValue, failingValue) => {
       )
     })
   })
+
+  describe('serialization', () => {
+
+    it ('should JSON.stringify nicely', () => {
+      assert.equal(JSON.stringify(type), `"${typeName}"`)
+    })
+
+    it ('should JSON.stringify nicely with isRequired', () => {
+      assert.equal(JSON.stringify(type.isRequired), `"required - \\"${typeName}\\""`)
+    })
+  })
 }
 
 describe('kisschema', () => {
@@ -45,7 +56,7 @@ describe('kisschema', () => {
     })
 
     describe('kisschema.types.bool', () => {
-      describeBasicType('boolean', types.bool, true, 1)
+      describeBasicType('bool', types.bool, true, 1)
     })
 
     describe('kisschema.types.object', () => {
@@ -57,7 +68,7 @@ describe('kisschema', () => {
     })
 
     describe('kisschema.types.func', () => {
-      describeBasicType('function', types.func, function() {}, 1)
+      describeBasicType('func', types.func, function() {}, 1)
     })
 
     describe('kisschema.types.oneOf', () => {
@@ -118,7 +129,7 @@ describe('kisschema', () => {
         var type = types.oneOfType(possibilities)
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be one of type: ${possibilities.map((p) => p.toString())}`
+          `test-prop should be one of type: ${possibilities.map((p) => JSON.stringify(p))}`
         )
       })
     })
@@ -144,7 +155,7 @@ describe('kisschema', () => {
         var type = types.arrayOf(item) 
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be an array containing items of type: ${item.toString()}`
+          `test-prop should be an array containing items of type: ${JSON.stringify(item)}`
         )
       })
     })
@@ -169,7 +180,7 @@ describe('kisschema', () => {
         var type = types.objectOf(types.number) 
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be an object containing items of type: ${types.number.toString()}`
+          `test-prop should be an object containing items of type: ${JSON.stringify(types.number)}`
         )
       })
     })
@@ -197,7 +208,7 @@ describe('kisschema', () => {
         var type = types.instanceOf(Animal)
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be an instance of ${Animal.toString()}`
+          `test-prop should be an instance of ${JSON.stringify(Animal)}`
         )
       })
     })
@@ -239,7 +250,7 @@ describe('kisschema', () => {
 
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }), 
-          `test-prop should match shape/schema ${schema.toString()}`
+          `test-prop should match shape {"a":"string","b":"array"}`
         )
       })
     })

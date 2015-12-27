@@ -18,7 +18,8 @@ var makeRequirable = (type) => {
       isRequiring: true,
       next: type,
       validate: (x) => existy(x),
-      makeErrorMessage: (ctx, x) => `${ctx.prop} must not be null or undefined`
+      makeErrorMessage: (ctx, x) => `${ctx.prop} must not be null or undefined`,
+      toJSON: () => `required - ${JSON.stringify(type)}`
     }
   })
 }
@@ -36,86 +37,123 @@ export var types = {
 
   string: makeRequirable({
     validate: (x) => isString(x),
-    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: string`
+    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: string`,
+    toJSON: () => 'string'
   }),
 
   number: makeRequirable({
     validate: (x) => isNumber(x),
-    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: number`
+    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: number`,
+    toJSON: () => 'number'
   }),
 
   bool: makeRequirable({
     validate: (x) => isBoolean(x),
-    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: boolean`
+    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: bool`,
+    toJSON: () => 'bool'
   }),
 
   object: makeRequirable({
     validate: (x) => isObject(x),
-    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: object`
+    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: object`,
+    toJSON: () => 'object'
   }),
 
   array: makeRequirable({
     validate: (x) => isArray(x),
-    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: array`
+    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: array`,
+    toJSON: () => 'array'
   }),
 
   func: makeRequirable({
     validate: (x) => isFunction(x),
-    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: function`
+    makeErrorMessage: (ctx, x) => `${ctx.prop} should be of type: func`,
+    toJSON: () => 'func'
   }),
 
   oneOf(possibilities=[]) {
-    return makeRequirable({
+
+    let type = makeRequirable({
       validate: (x) => possibilities.indexOf(x) > -1,
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should match one of: ${JSON.stringify(possibilities)}`
+      makeErrorMessage: (ctx, x) => `${ctx.prop} should match one of: ${type.toJSON()}`,
+      toJSON: () => JSON.stringify(possibilities)
     })
+
+    return type
   },
 
   oneOfType(schemaOrTypes=[]) {
-    var types = schemaOrTypes.map(asType)
-    return makeRequirable({
-      validate: (x) => types.some((type) => type.validate(x)),
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should be one of type: ${schemaOrTypes.map((st) => st.toString())}`
+
+    var subs = schemaOrTypes.map(asType)
+
+    let type = makeRequirable({
+      validate: (x) => subs.some(sub => sub.validate(x)),
+      makeErrorMessage: (ctx, x) => `${ctx.prop} should be one of type: ${type.toJSON()}`,
+      toJSON: () => schemaOrTypes.map((st) => JSON.stringify(st))
     })
+
+    return type
   },
 
   arrayOf(schemaOrType={}) {
-    var type = asType(schemaOrType)
-    return makeRequirable({
-      validate: (x) => x.every((y) => type.validate(y)),
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should be an array containing items of type: ${schemaOrType.toString()}`
+    var sub = asType(schemaOrType)
+
+    let type = makeRequirable({
+      validate: (x) => x.every((y) => sub.validate(y)),
+      makeErrorMessage: (ctx, x) => `${ctx.prop} should be an array containing items of type: ${type.toJSON()}`,
+      toJSON: () => JSON.stringify(schemaOrType)
     })
+
+    return type
   },
 
   objectOf(schemaOrType={}) {
-    var type = asType(schemaOrType)
-    return makeRequirable({
-      validate: (x) => values(x).every((y) => type.validate(y)),
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should be an object containing items of type: ${schemaOrType.toString()}`
+
+    let sub = asType(schemaOrType)
+
+    let type = makeRequirable({
+      validate: (x) => values(x).every((y) => sub.validate(y)),
+      makeErrorMessage: (ctx, x) => `${ctx.prop} should be an object containing items of type: ${type.toJSON()}`,
+      toJSON: () => JSON.stringify(schemaOrType)
     })
+
+    return type
   },
 
   instanceOf(Constructor=function() {}) {
-    return makeRequirable({
+
+    let type =  makeRequirable({
       validate: (x) => x instanceof Constructor,
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should be an instance of ${Constructor.toString()}`
+      makeErrorMessage: (ctx, x) => `${ctx.prop} should be an instance of ${type.toJSON()}`,
+      toJSON: () => JSON.stringify(Constructor)
     })
+
+    return type
   },
 
   shape(schema={}) {
-    return makeRequirable({
+
+    let type = makeRequirable({
       validate: (x) => !validate(schema, x),
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should match shape/schema ${schema.toString()}`
+      makeErrorMessage: (ctx, x) => `${ctx.prop} should match shape ${type.toJSON()}`,
+      toJSON: () => JSON.stringify(
+        Object.keys(schema).reduce((memo, key) => {
+          return Object.assign({}, memo, { [key]: schema[key].toJSON() })
+        }, {})
+      )
     })
+
+    return type
   },
 
   custom(type={}) {
     var errors = validate({ 
       validate: types.func.isRequired, 
-      makeErrorMessage: types.func.isRequired 
+      makeErrorMessage: types.func.isRequired,
+      toJSON: types.func
     }, type)
     if (errors) throw new Error(errors)
-    return makeRequirable(type)
+    return makeRequirable(Object.assign({ toJSON: () => 'custom type - define a "toJSON" function for a better message here' }, type))
   },
 
   any: makeRequirable({
