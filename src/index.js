@@ -141,7 +141,13 @@ export var types = {
 
     let type = makeRequirable({
       validate: (x) => !validate(schema, x),
-      makeErrorMessage: (ctx, x) => `${ctx.prop} should match shape ${type.toJSON()}`,
+      makeErrorMessage: (ctx, x={}) => {
+        return Object.keys(schema).reduce((memo, key) => {
+          let result = validate({ [key]: schema[key] }, { [key]: x[key] })
+          if (!result) return memo
+          return Object.assign({}, memo, result)
+        }, {})
+      },
       toJSON: () => doubleToSingleQuotes(JSON.stringify(
         Object.keys(schema).reduce((memo, key) => {
           return Object.assign({}, memo, { [key]: schema[key].toJSON() })

@@ -248,9 +248,9 @@ describe('kisschema', () => {
         }
         var type = types.shape(schema)
 
-        assert.equal(
-          type.makeErrorMessage({ prop: 'test-prop' }), 
-          `test-prop should match shape {'a':'string','b':'array'}`
+        assert.deepEqual(
+          type.makeErrorMessage({ prop: 'test-prop' }, { a: 1, b: '1' }), 
+          { a: 'a should be of type: string', b: 'b should be of type: array' }
         )
       })
     })

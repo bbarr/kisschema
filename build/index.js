@@ -248,8 +248,14 @@ var types = exports.types = {
       validate: function validate(x) {
         return !_validate(schema, x);
       },
-      makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should match shape ' + type.toJSON();
+      makeErrorMessage: function makeErrorMessage(ctx) {
+        var x = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+        return Object.keys(schema).reduce(function (memo, key) {
+          var result = _validate(_defineProperty({}, key, schema[key]), _defineProperty({}, key, x[key]));
+          if (!result) return memo;
+          return Object.assign({}, memo, result);
+        }, {});
       },
       toJSON: function toJSON() {
         return doubleToSingleQuotes(JSON.stringify(Object.keys(schema).reduce(function (memo, key) {
