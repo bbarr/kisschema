@@ -27,10 +27,6 @@ var values = function values(obj) {
   }, []);
 };
 
-var doubleToSingleQuotes = function doubleToSingleQuotes(str) {
-  return str.replace(/"/g, "'");
-};
-
 var makeRequirable = function makeRequirable(type) {
   return Object.assign(type, {
     isRequired: {
@@ -43,7 +39,7 @@ var makeRequirable = function makeRequirable(type) {
         return ctx.prop + ' must not be null or undefined';
       },
       toJSON: function toJSON() {
-        return doubleToSingleQuotes('required - ' + JSON.stringify(type));
+        return Object.assign({ required: true }, type.toJSON());
       }
     }
   });
@@ -61,7 +57,7 @@ var asType = function asType(obj) {
       return ctx.prop + ' should match schema: ' + type.toJSON();
     },
     toJSON: function toJSON() {
-      return doubleToSingleQuotes(JSON.stringify(obj));
+      return JSON.stringify(obj);
     }
   };
 
@@ -78,7 +74,7 @@ var types = exports.types = {
       return ctx.prop + ' should be of type: string';
     },
     toJSON: function toJSON() {
-      return 'string';
+      return { type: 'string' };
     }
   }),
 
@@ -90,7 +86,7 @@ var types = exports.types = {
       return ctx.prop + ' should be of type: number';
     },
     toJSON: function toJSON() {
-      return 'number';
+      return { type: 'number' };
     }
   }),
 
@@ -102,7 +98,7 @@ var types = exports.types = {
       return ctx.prop + ' should be of type: bool';
     },
     toJSON: function toJSON() {
-      return 'bool';
+      return { type: 'bool' };
     }
   }),
 
@@ -114,7 +110,7 @@ var types = exports.types = {
       return ctx.prop + ' should be of type: object';
     },
     toJSON: function toJSON() {
-      return 'object';
+      return { type: 'object' };
     }
   }),
 
@@ -126,7 +122,7 @@ var types = exports.types = {
       return ctx.prop + ' should be of type: array';
     },
     toJSON: function toJSON() {
-      return 'array';
+      return { type: 'array' };
     }
   }),
 
@@ -138,7 +134,7 @@ var types = exports.types = {
       return ctx.prop + ' should be of type: func';
     },
     toJSON: function toJSON() {
-      return 'func';
+      return { type: 'func' };
     }
   }),
 
@@ -150,10 +146,10 @@ var types = exports.types = {
         return possibilities.indexOf(x) > -1;
       },
       makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should match one of: ' + type.toJSON();
+        return type.toJSON();
       },
       toJSON: function toJSON() {
-        return doubleToSingleQuotes(JSON.stringify(possibilities));
+        return { oneOf: possibilities };
       }
     });
 
@@ -171,12 +167,12 @@ var types = exports.types = {
         });
       },
       makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should be one of type: ' + type.toJSON();
+        return type.toJSON();
       },
       toJSON: function toJSON() {
-        return schemaOrTypes.map(function (st) {
-          return doubleToSingleQuotes(JSON.stringify(st));
-        });
+        return { oneOfType: schemaOrTypes.map(function (st) {
+            return st.toJSON();
+          }) };
       }
     });
 
@@ -193,11 +189,11 @@ var types = exports.types = {
           return sub.validate(y);
         });
       },
-      makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should be an array containing items of type: ' + type.toJSON();
+      makeErrorMessage: function makeErrorMessage() {
+        return type.toJSON();
       },
       toJSON: function toJSON() {
-        return doubleToSingleQuotes(JSON.stringify(schemaOrType));
+        return { arrayOf: sub.toJSON() };
       }
     });
 
@@ -215,10 +211,10 @@ var types = exports.types = {
         });
       },
       makeErrorMessage: function makeErrorMessage(ctx, x) {
-        return ctx.prop + ' should be an object containing items of type: ' + type.toJSON();
+        return type.toJSON();
       },
       toJSON: function toJSON() {
-        return doubleToSingleQuotes(JSON.stringify(schemaOrType));
+        return { objectOf: sub.toJSON() };
       }
     });
 
@@ -258,9 +254,9 @@ var types = exports.types = {
         }, {});
       },
       toJSON: function toJSON() {
-        return doubleToSingleQuotes(JSON.stringify(Object.keys(schema).reduce(function (memo, key) {
+        return Object.keys(schema).reduce(function (memo, key) {
           return Object.assign({}, memo, _defineProperty({}, key, schema[key].toJSON()));
-        }, {})));
+        }, {});
       }
     });
 
