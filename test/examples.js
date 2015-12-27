@@ -38,7 +38,7 @@ describe('examples', () => {
         name: 'Bob Cobb',
         bookIds: []
       }
-      assert.equal(validate(Author, author).length, 1)
+      assert.ok(validate(Author, author).email)
     })
   })
 
@@ -60,7 +60,7 @@ describe('examples', () => {
         name: 'Bob Cobb',
         bookIds: [ ]
       }
-      assert.equal(validate(Author, author).length, 1)
+      assert.ok(validate(Author, author).email)
     })
   })
 })

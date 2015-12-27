@@ -329,17 +329,17 @@ describe('kisschema', () => {
       var schema = { a: types.array, b: types.string, c: types.object }
       var obj = { a: '1', b: 1, c: {} }
       var errors = validate(schema, obj)
-      assert.equal(errors.length, 2)
-      assert.equal(errors[0], types.array.makeErrorMessage({ prop: 'a' }, '1'))
-      assert.equal(errors[1], types.string.makeErrorMessage({ prop: 'b' }, 1))
+      assert.equal(Object.keys(errors).length, 2)
+      assert.equal(errors.a, types.array.makeErrorMessage({ prop: 'a' }, '1'))
+      assert.equal(errors.b, types.string.makeErrorMessage({ prop: 'b' }, 1))
     })
 
     it ('should respect isRequired extention', () => {
       var schema = { a: types.string.isRequired, b: types.number }
       var obj = { b: 1 }
       var errors = validate(schema, obj)
-      assert.equal(errors.length, 1)
-      assert.equal(errors[0], types.string.isRequired.makeErrorMessage({ prop: 'a' }, null))
+      assert.equal(Object.keys(errors).length, 1)
+      assert.equal(errors.a, types.string.isRequired.makeErrorMessage({ prop: 'a' }, null))
     })
 
     describe('options', () => {
@@ -350,9 +350,9 @@ describe('kisschema', () => {
           var schema = { a: types.string.isRequired, b: types.number }
           var obj = { b: '1' }
           var errors = validate(schema, obj)
-          assert.equal(errors.length, 2)
+          assert.equal(Object.keys(errors).length, 2)
           var limitedErrors = validate(schema, obj, { failFast: true })
-          assert.equal(limitedErrors.length, 1)
+          assert.equal(Object.keys(limitedErrors).length, 1)
         })
       })
     })

@@ -284,10 +284,10 @@ var types = exports.types = {
   })
 };
 
-var validateType = function validateType(errors, ctx, type, val) {
+var validateType = function validateType(errors, ctx, type, val, key) {
   if (!existy(val) && !type.isRequiring) return errors;
   var passed = type.validate(val);
-  return passed ? errors : errors.concat(type.makeErrorMessage(ctx, val));
+  return passed ? errors : Object.assign({}, errors, _defineProperty({}, key, type.makeErrorMessage(ctx, val)));
 };
 
 var _validate = function _validate(schema, obj) {
@@ -296,17 +296,17 @@ var _validate = function _validate(schema, obj) {
   var errors = Object.keys(schema).reduce(function (errors, key) {
     var ctx = { prop: key };
     var type = schema[key];
-    if (opts.failFast && errors.length) return errors;
-    var newErrors = validateType(errors, ctx, type, obj[key]);
-    if (opts.failFast && newErrors.length) return newErrors;
+    if (opts.failFast && Object.keys(errors).length) return errors;
+    var newErrors = validateType(errors, ctx, type, obj[key], key);
+    if (opts.failFast && Object.keys(newErrors).length) return newErrors;
     while (type.next) {
       type = type.next;
-      newErrors = validateType(newErrors, ctx, type, obj[key]);
+      newErrors = validateType(newErrors, ctx, type, obj[key], key);
     }
     return newErrors;
-  }, []);
+  }, {});
 
-  return errors.length ? errors : null;
+  return Object.keys(errors).length ? errors : null;
 };
 
 exports.validate = _validate;
