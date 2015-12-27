@@ -27,6 +27,10 @@ var values = function values(obj) {
   }, []);
 };
 
+var doubleToSingleQuotes = function doubleToSingleQuotes(str) {
+  return str.replace(/"/g, "'");
+};
+
 var makeRequirable = function makeRequirable(type) {
   return Object.assign(type, {
     isRequired: {
@@ -39,7 +43,7 @@ var makeRequirable = function makeRequirable(type) {
         return ctx.prop + ' must not be null or undefined';
       },
       toJSON: function toJSON() {
-        return 'required - ' + JSON.stringify(type);
+        return doubleToSingleQuotes('required - ' + JSON.stringify(type));
       }
     }
   });
@@ -48,14 +52,20 @@ var makeRequirable = function makeRequirable(type) {
 // return "type" object for validation.. used for testing schema's as standalone props
 var asType = function asType(obj) {
   if (obj.validate) return obj;
-  return {
+
+  var type = {
     validate: function validate(x) {
       return !_validate(obj, x);
     },
     makeErrorMessage: function makeErrorMessage(ctx, x) {
-      return ctx.prop + ' should match schema: ' + JSON.stringify(obj);
+      return ctx.prop + ' should match schema: ' + type.toJSON();
+    },
+    toJSON: function toJSON() {
+      return doubleToSingleQuotes(JSON.stringify(obj));
     }
   };
+
+  return type;
 };
 
 var types = exports.types = {
@@ -143,7 +153,7 @@ var types = exports.types = {
         return ctx.prop + ' should match one of: ' + type.toJSON();
       },
       toJSON: function toJSON() {
-        return JSON.stringify(possibilities);
+        return doubleToSingleQuotes(JSON.stringify(possibilities));
       }
     });
 
@@ -165,7 +175,7 @@ var types = exports.types = {
       },
       toJSON: function toJSON() {
         return schemaOrTypes.map(function (st) {
-          return JSON.stringify(st);
+          return doubleToSingleQuotes(JSON.stringify(st));
         });
       }
     });
@@ -187,7 +197,7 @@ var types = exports.types = {
         return ctx.prop + ' should be an array containing items of type: ' + type.toJSON();
       },
       toJSON: function toJSON() {
-        return JSON.stringify(schemaOrType);
+        return doubleToSingleQuotes(JSON.stringify(schemaOrType));
       }
     });
 
@@ -208,7 +218,7 @@ var types = exports.types = {
         return ctx.prop + ' should be an object containing items of type: ' + type.toJSON();
       },
       toJSON: function toJSON() {
-        return JSON.stringify(schemaOrType);
+        return doubleToSingleQuotes(JSON.stringify(schemaOrType));
       }
     });
 
@@ -225,7 +235,7 @@ var types = exports.types = {
         return ctx.prop + ' should be an instance of ' + type.toJSON();
       },
       toJSON: function toJSON() {
-        return JSON.stringify(Constructor);
+        return Constructor.toString();
       }
     });
 
@@ -242,9 +252,9 @@ var types = exports.types = {
         return ctx.prop + ' should match shape ' + type.toJSON();
       },
       toJSON: function toJSON() {
-        return JSON.stringify(Object.keys(schema).reduce(function (memo, key) {
+        return doubleToSingleQuotes(JSON.stringify(Object.keys(schema).reduce(function (memo, key) {
           return Object.assign({}, memo, _defineProperty({}, key, schema[key].toJSON()));
-        }, {}));
+        }, {})));
       }
     });
 

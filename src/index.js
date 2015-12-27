@@ -12,6 +12,8 @@ var isUndefined = is.bind(null, 'Undefined')
 var existy = (x) => !isNull(x) && !isUndefined(x)
 var values = (obj) => Object.keys(obj).reduce((vals, key) => vals.concat(obj[key]), [])
 
+var doubleToSingleQuotes = str => str.replace(/"/g, "'")
+
 var makeRequirable = (type) => {
   return Object.assign(type, {
     isRequired: {
@@ -19,7 +21,7 @@ var makeRequirable = (type) => {
       next: type,
       validate: (x) => existy(x),
       makeErrorMessage: (ctx, x) => `${ctx.prop} must not be null or undefined`,
-      toJSON: () => `required - ${JSON.stringify(type)}`
+      toJSON: () => doubleToSingleQuotes(`required - ${JSON.stringify(type)}`)
     }
   })
 }
@@ -27,10 +29,14 @@ var makeRequirable = (type) => {
 // return "type" object for validation.. used for testing schema's as standalone props
 var asType = (obj) => {
   if (obj.validate) return obj
-  return {
+
+  let type = {
     validate: (x) => !validate(obj, x),
-    makeErrorMessage: (ctx, x) => `${ctx.prop} should match schema: ${JSON.stringify(obj)}`
+    makeErrorMessage: (ctx, x) => `${ctx.prop} should match schema: ${type.toJSON()}`,
+    toJSON: () => doubleToSingleQuotes(JSON.stringify(obj))
   }
+
+  return type
 }
 
 export var types = {
@@ -76,7 +82,7 @@ export var types = {
     let type = makeRequirable({
       validate: (x) => possibilities.indexOf(x) > -1,
       makeErrorMessage: (ctx, x) => `${ctx.prop} should match one of: ${type.toJSON()}`,
-      toJSON: () => JSON.stringify(possibilities)
+      toJSON: () => doubleToSingleQuotes(JSON.stringify(possibilities))
     })
 
     return type
@@ -89,7 +95,7 @@ export var types = {
     let type = makeRequirable({
       validate: (x) => subs.some(sub => sub.validate(x)),
       makeErrorMessage: (ctx, x) => `${ctx.prop} should be one of type: ${type.toJSON()}`,
-      toJSON: () => schemaOrTypes.map((st) => JSON.stringify(st))
+      toJSON: () => schemaOrTypes.map((st) => doubleToSingleQuotes(JSON.stringify(st)))
     })
 
     return type
@@ -101,7 +107,7 @@ export var types = {
     let type = makeRequirable({
       validate: (x) => x.every((y) => sub.validate(y)),
       makeErrorMessage: (ctx, x) => `${ctx.prop} should be an array containing items of type: ${type.toJSON()}`,
-      toJSON: () => JSON.stringify(schemaOrType)
+      toJSON: () => doubleToSingleQuotes(JSON.stringify(schemaOrType))
     })
 
     return type
@@ -114,7 +120,7 @@ export var types = {
     let type = makeRequirable({
       validate: (x) => values(x).every((y) => sub.validate(y)),
       makeErrorMessage: (ctx, x) => `${ctx.prop} should be an object containing items of type: ${type.toJSON()}`,
-      toJSON: () => JSON.stringify(schemaOrType)
+      toJSON: () => doubleToSingleQuotes(JSON.stringify(schemaOrType))
     })
 
     return type
@@ -125,7 +131,7 @@ export var types = {
     let type =  makeRequirable({
       validate: (x) => x instanceof Constructor,
       makeErrorMessage: (ctx, x) => `${ctx.prop} should be an instance of ${type.toJSON()}`,
-      toJSON: () => JSON.stringify(Constructor)
+      toJSON: () => Constructor.toString()
     })
 
     return type
@@ -136,10 +142,10 @@ export var types = {
     let type = makeRequirable({
       validate: (x) => !validate(schema, x),
       makeErrorMessage: (ctx, x) => `${ctx.prop} should match shape ${type.toJSON()}`,
-      toJSON: () => JSON.stringify(
+      toJSON: () => doubleToSingleQuotes(JSON.stringify(
         Object.keys(schema).reduce((memo, key) => {
           return Object.assign({}, memo, { [key]: schema[key].toJSON() })
-        }, {})
+        }, {}))
       )
     })
 

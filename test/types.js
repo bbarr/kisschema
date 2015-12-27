@@ -38,7 +38,7 @@ var describeBasicType = (typeName, type, passingValue, failingValue) => {
     })
 
     it ('should JSON.stringify nicely with isRequired', () => {
-      assert.equal(JSON.stringify(type.isRequired), `"required - \\"${typeName}\\""`)
+      assert.equal(JSON.stringify(type.isRequired), `"required - '${typeName}'"`)
     })
   })
 }
@@ -92,7 +92,7 @@ describe('kisschema', () => {
         var type = types.oneOf(possibilities)
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should match one of: ${JSON.stringify(possibilities)}`
+          `test-prop should match one of: ['a','b','c']`
         )
       })
     })
@@ -129,7 +129,7 @@ describe('kisschema', () => {
         var type = types.oneOfType(possibilities)
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be one of type: ${possibilities.map((p) => JSON.stringify(p))}`
+          `test-prop should be one of type: {'a':'string'},'number'`
         )
       })
     })
@@ -155,7 +155,7 @@ describe('kisschema', () => {
         var type = types.arrayOf(item) 
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be an array containing items of type: ${JSON.stringify(item)}`
+          `test-prop should be an array containing items of type: {'a':'number'}`
         )
       })
     })
@@ -180,7 +180,7 @@ describe('kisschema', () => {
         var type = types.objectOf(types.number) 
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be an object containing items of type: ${JSON.stringify(types.number)}`
+          `test-prop should be an object containing items of type: 'number'`
         )
       })
     })
@@ -208,7 +208,7 @@ describe('kisschema', () => {
         var type = types.instanceOf(Animal)
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }),
-          `test-prop should be an instance of ${JSON.stringify(Animal)}`
+          `test-prop should be an instance of ${Animal.toString()}`
         )
       })
     })
@@ -250,7 +250,7 @@ describe('kisschema', () => {
 
         assert.equal(
           type.makeErrorMessage({ prop: 'test-prop' }), 
-          `test-prop should match shape {"a":"string","b":"array"}`
+          `test-prop should match shape {'a':'string','b':'array'}`
         )
       })
     })
