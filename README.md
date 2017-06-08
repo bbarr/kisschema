@@ -1,9 +1,10 @@
 
-##KISSchema
+## KISSchema
 
 ReactJS propType-inspired schemas for plain old JS objects.
 
-###Example:
+### Example:
+
 ```javascript
 
 import { types, validate } from 'kisschema'
@@ -51,7 +52,7 @@ var shoutType = types.custom({
 })
 ```
 
-###API
+### API
 
 * types.string
 * types.number
